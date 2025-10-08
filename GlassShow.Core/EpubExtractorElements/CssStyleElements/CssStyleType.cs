@@ -1,6 +1,6 @@
 ﻿namespace GlassShow.Core.EpubExtractorElements.CssStyleElements;
 
-enum CssStyleType
+public enum CssStyleType
 {
     Class,
     Id,
