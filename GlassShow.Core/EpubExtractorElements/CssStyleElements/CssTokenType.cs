@@ -13,4 +13,5 @@ public enum CssTokenType
     Colon,          // `:`
     PropertyValue,  // selector values: `red`, `12px`, `#fff`
     Semicolon,      // `;`
+    LieralString,   // a value that is delimited by single/double quotes 
 }
