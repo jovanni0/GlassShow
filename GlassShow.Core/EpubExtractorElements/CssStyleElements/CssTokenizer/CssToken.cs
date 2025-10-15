@@ -1,4 +1,4 @@
-namespace GlassShow.Core.EpubExtractorElements.CssStyleElements;
+namespace GlassShow.Core.EpubExtractorElements.CssStyleElements.CssTokenizer;
 
 public class CssToken
 {

@@ -1,4 +1,6 @@
-namespace GlassShow.Core.EpubExtractorElements.CssStyleElements;
+using System.Text;
+
+namespace GlassShow.Core.EpubExtractorElements.CssStyleElements.CssLexer;
 
 public class CssSelector
 {
@@ -99,5 +101,60 @@ public class CssSelector
         if (isBold) return "<b>";
 
         return string.Empty;
+    }
+    
+    public override bool Equals(object? obj)
+    {
+        if (obj is CssSelector other)
+        {
+            // Compare the basic properties
+            bool namesEqual = string.Equals(SelectorName, other.SelectorName, StringComparison.OrdinalIgnoreCase);
+            bool idsEqual = string.Equals(SelectorId, other.SelectorId, StringComparison.OrdinalIgnoreCase);
+
+            // Compare classes
+            bool classesEqual = SelectorClasses.Count == other.SelectorClasses.Count &&
+                                !SelectorClasses.Except(other.SelectorClasses).Any();
+
+            // Compare properties
+            bool propertiesEqual = SelectorProperties.Count == other.SelectorProperties.Count &&
+                                   !SelectorProperties.Except(other.SelectorProperties).Any();
+
+            return namesEqual && idsEqual && classesEqual && propertiesEqual;
+        }
+        
+        return false;
+    }
+
+    // Override GetHashCode method
+    public override int GetHashCode()
+    {
+        // Combine hash codes of all properties
+        int hashCode = 17; // Arbitrary prime number to start with
+
+        hashCode = hashCode * 31 + (SelectorName?.GetHashCode() ?? 0);
+        hashCode = hashCode * 31 + (SelectorId?.GetHashCode() ?? 0);
+        hashCode = hashCode * 31 + SelectorClasses.Aggregate(0, (acc, s) => acc ^ s.GetHashCode());
+        hashCode = hashCode * 31 + SelectorProperties.Aggregate(0, (acc, kvp) => acc ^ kvp.Key.GetHashCode() ^ kvp.Value.GetHashCode());
+
+        return hashCode;
+    }
+
+    public override string ToString()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.Append("{\n");
+        stringBuilder.Append($"  Name: {SelectorName}\n");
+        stringBuilder.Append($"  Id: {SelectorId}\n");
+        stringBuilder.Append($"  Classes: {string.Join(", ", SelectorClasses)}\n");
+        stringBuilder.Append("  Properties: {\n");
+        foreach (string key in SelectorProperties.Keys)
+        {
+            stringBuilder.Append($"    {key}: {SelectorProperties[key]}\n");
+        }
+        stringBuilder.Append("  }\n");
+        stringBuilder.Append("}");
+
+        return stringBuilder.ToString();
     }
 }
