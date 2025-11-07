@@ -1,6 +1,6 @@
 ﻿namespace GlassShow.Core.EpubExtractorElements.CssStyleElements;
 
-class CssStyle
+public class CssStyle
 {
     public string Name { get; set; } = string.Empty;
     public List<string> Classes { get; set; } = new();
@@ -160,6 +160,40 @@ class CssStyle
         }
 
         return false;
+    }
+    
+    /// <summary>
+    /// check if the `HtmlElement` will be influenced by the current `CssStyle` element.
+    ///
+    /// TODO: think about treating the Attribute Selectors ([type="text"]), Pseudo-Classes (:hover)
+    ///       and Pseudo-Elements (::before).
+    /// </summary>
+    /// <param name="htmlElement">the `HtmlElement` that is checked.</param>
+    /// <returns>`true` if the `HtmlElement` is being influenced, `false` otherwise.</returns>
+    public bool IsApplicableToHtmlElement(HtmlElement htmlElement)
+    {
+        // check if the `HtmlElement` has a different id
+        if (htmlElement.ElementId != Id)
+        {
+            return false;
+        }
+        
+        // check if the `HtmlElement` does not have all the classes
+        foreach (string className in Classes)
+        {
+            if (!htmlElement.ElementClasses.Contains(className))
+            {
+                return false;
+            }
+        }
+        
+        // check if the `HtmlElement` does not have the same name
+        if (htmlElement.ElementName != Name)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public override string ToString()
