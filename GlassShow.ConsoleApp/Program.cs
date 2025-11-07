@@ -1,8 +1,9 @@
-﻿using GlassShow.Core;
+﻿using GlassShow.ConsoleApp.CliTools;
+using GlassShow.Core;
 
 namespace GlassShow.ConsoleApp;
 
-class Program
+static class Program
 {
     static void Main(string[] args)
     {
@@ -13,50 +14,41 @@ class Program
             return;
         }
 
-        // parse the CLI arguments
-        CliArgumentsParser cliParser = new CliArgumentsParser();
-        Dictionary<string, string?> argumentDict = cliParser.ParseArguments(args);
+        // parse the CLI arguments into a list if input-output tuples
+        List<Tuple<string, string>>? inputOutputTupleList = CliManager.GenerateInputOutputTupleList(args);
 
-        CliArgumentUnifier cliUnifier = new CliArgumentUnifier();
-        Dictionary<string, string?> unifiedArgumentDict = cliUnifier.Unify(argumentDict);
-
-        CliArgumentValidator cliValidator = new CliArgumentValidator();
-        bool hasErrors = cliValidator.ValidateArguments(unifiedArgumentDict);
-
-        if (hasErrors)
+        if (inputOutputTupleList == null)
         {
             Console.WriteLine("\nprocess terminated doe to the previous errors.");
             return;
         }
-        
-        // print the current settings to the console
-        Console.WriteLine("GlassShow is being run with the following options:");
-        foreach (string option in argumentDict.Keys)
-        {
-            string? value = argumentDict[option];
-            
-            if (value != null)
-            {
-                Console.WriteLine($"{{ {option} : {value} }}");
-            }
-        }
-        Console.WriteLine();
 
-        string epubPath = unifiedArgumentDict["epubPath"]!;
-        string outputDir = Path.Combine(unifiedArgumentDict["outputPath"]!, unifiedArgumentDict["outputDirName"]!);
-        
-        // start the conversion process
-        Epub2FvmlEngine conversionEngine = new Epub2FvmlEngine(epubPath);
-        var splits = conversionEngine.Epub2Fvml();
-        
-        // make the output directory
-        Directory.CreateDirectory(outputDir);
-        
-        // write the documents
-        foreach (string split in splits)
+        foreach (Tuple<string, string> tuple in inputOutputTupleList)
         {
-            string filepath = Path.Combine(outputDir, $"{splits.IndexOf(split)}.md");
-            File.WriteAllText(filepath, split);
+            string inputPath = tuple.Item1;
+            string outputPath = tuple.Item2;
+            
+            // start the conversion process
+            Epub2FvmlEngine conversionEngine = new Epub2FvmlEngine(inputPath);
+            var splits = conversionEngine.Epub2Fvml();
+            
+            // write the documents
+            foreach (string split in splits)
+            {
+                string filepath = Path.Combine(outputPath, $"{splits.IndexOf(split)}.md");
+
+                try
+                {
+                    File.WriteAllText(filepath, split);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return;
+                }
+            }
+            
+            Console.WriteLine("exported converted ebook " + Path.GetFileNameWithoutExtension(inputPath) + " to: " + outputPath);
         }
     }
 }
